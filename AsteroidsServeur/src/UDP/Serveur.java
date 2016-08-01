@@ -41,22 +41,22 @@ public class Serveur implements Runnable
 		this.entities.add(entity);
 	}
 	
-	private void checkCollision ()
+	private void checkCollision (Entity player)
 	{
+		
 		for (int i = 0; i < this.entities.size(); i++)
 		{
 			Entity a = this.entities.get(i);
-			
+
 			for (int j = i + 1; j < this.entities.size(); j++)
 			{
 				Entity b = this.entities.get(j);
-				
-				if (i != j && a.checkCollision(b))
+
+				/*if (i != j && a.checkCollision(b) && ((a != player && b != player) || this.deathCooldown <= Game.INVULN_COOLDOWN_LIMIT))
 				{
-					
-					//a.checkCollision(this, b);
-					//b.checkCollision(this, a);
-				}
+					a.checkCollision(this, b);
+					b.checkCollision(this, a);
+				}*/
 			}
 		}
 		
