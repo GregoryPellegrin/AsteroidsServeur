@@ -5,7 +5,7 @@
 package UDP;
 
 import Entity.Entity;
-import Game.Game;
+import Entity.Ship;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -34,15 +34,25 @@ public class Serveur implements Runnable
 	
 	private void addEntity (Entity entity)
 	{
-		for (int i = 0; i < this.entities.size(); i++)
-			if (this.entities.get(i).getIdClient() == entity.getIdClient())
+		boolean find = false;
+		
+		for (int i = 0; ((i < this.entities.size()) && (! find)); i++)
+			if (this.entities.get(i).getId() == entity.getId())
+			{
+				find = true;
 				this.entities.remove(i);
+			}
 		
 		this.entities.add(entity);
+		
+		if (((Ship) entity).missile.size() > 0)
+			this.entities.addAll(((Ship) entity).missile);
 	}
 	
-	private void checkCollision (Entity player)
+	private void updateEntities ()
 	{
+		for (Entity entity : this.entities)
+			entity.update();
 		
 		for (int i = 0; i < this.entities.size(); i++)
 		{
@@ -51,12 +61,12 @@ public class Serveur implements Runnable
 			for (int j = i + 1; j < this.entities.size(); j++)
 			{
 				Entity b = this.entities.get(j);
-
-				/*if (i != j && a.checkCollision(b) && ((a != player && b != player) || this.deathCooldown <= Game.INVULN_COOLDOWN_LIMIT))
+				
+				if ((i != j) && a.isCollision(b))
 				{
-					a.checkCollision(this, b);
-					b.checkCollision(this, a);
-				}*/
+					a.checkCollision(b);
+					b.checkCollision(a);
+				}
 			}
 		}
 		
@@ -78,8 +88,8 @@ public class Serveur implements Runnable
 				byte [] bufferGetFromClient = new byte [Serveur.BYTE_SIZE];
 				DatagramPacket paquetGetFromClient = new DatagramPacket
 				(
-						bufferGetFromClient,
-						bufferGetFromClient.length
+					bufferGetFromClient,
+					bufferGetFromClient.length
 				);
 				
 				serveur.receive(paquetGetFromClient);
@@ -89,12 +99,13 @@ public class Serveur implements Runnable
 				
 				Entity entity = (Entity) objectStreamGetFromClient.readObject();
 				this.addEntity(entity);
+				this.updateEntities();
 				
 				objectStreamGetFromClient.close();
 				paquetGetFromClient.setLength(bufferGetFromClient.length);
 				
 				//Gerer toutes les Entity que tu va envoyer au client pour faire l'affichage
-				println("[SERVEUR] Paquet recu du client " + entity.getIdClient());
+				println("[SERVEUR] Paquet recu du client " + entity.getId());
 				
 				ByteArrayOutputStream objectByteSendToClient = new ByteArrayOutputStream (Serveur.BYTE_SIZE);
 				ObjectOutputStream objectStreamSendToClient = new ObjectOutputStream (new BufferedOutputStream (objectByteSendToClient));

@@ -65,8 +65,8 @@ public class Client implements Runnable
 				byte [] bufferGetFromServeur = new byte [Serveur.BYTE_SIZE];
 				DatagramPacket paquetGetFromServeur = new DatagramPacket
 				(
-						bufferGetFromServeur,
-						bufferGetFromServeur.length
+					bufferGetFromServeur,
+					bufferGetFromServeur.length
 				);
 				
 				client.receive(paquetGetFromServeur);
