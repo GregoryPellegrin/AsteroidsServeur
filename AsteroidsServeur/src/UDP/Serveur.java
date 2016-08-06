@@ -104,7 +104,6 @@ public class Serveur implements Runnable
 				objectStreamGetFromClient.close();
 				paquetGetFromClient.setLength(bufferGetFromClient.length);
 				
-				//Gerer toutes les Entity que tu va envoyer au client pour faire l'affichage
 				println("[SERVEUR] Paquet recu du client " + entity.getId());
 				
 				ByteArrayOutputStream objectByteSendToClient = new ByteArrayOutputStream (Serveur.BYTE_SIZE);
