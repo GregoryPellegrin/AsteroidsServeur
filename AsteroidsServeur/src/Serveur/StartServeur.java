@@ -12,7 +12,9 @@ public class StartServeur
 		Thread serveur = new Thread (new Serveur ());
 		
 		System.out.println("[SERVEUR] Starting...");
+		
 		serveur.start();
-		System.out.println("[SERVEUR] Runing");
+		
+		System.out.println("[SERVEUR] Runing...");
 	}
 }
