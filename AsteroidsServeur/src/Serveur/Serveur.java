@@ -51,10 +51,14 @@ public class Serveur implements Runnable
 			
 			for (int j = 0; ((j < this.entities.size()) && (! find)); j++)
 				if (((Ship) entity).missile.get(i).getId() == this.entities.get(j).getId())
+				{
 					find = true;
+					
+					this.entities.remove(j);
+				}
 			
-			if (find == false)
-				this.entities.add(((Ship) entity).missile.get(i));
+			//if (find == false)
+			this.entities.add(((Ship) entity).missile.get(i));
 		}
 	}
 	
