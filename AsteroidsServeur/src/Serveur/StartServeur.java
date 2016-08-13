@@ -3,30 +3,32 @@
  * pellegrin.gregory.work@gmail.com
  */
 
-package Test;
+package Serveur;
 
 import Ship.MotherShip;
 import Ship.SpeedShip;
 import Ship.SuperSpeedShip;
 import Character.Computer;
 import Entity.Entity;
-import UDP.Client;
-import UDP.Serveur;
+import Client.Client;
 import java.util.Arrays;
 
-public class Test
+public class StartServeur
 {
 	public static void main (String args [])
 	{
 		Thread serveur = new Thread (new Serveur ());
 
-		Thread player1 = new Thread (new Client (new SuperSpeedShip (50, 100, Computer.START_LEFT, Entity.COMPUTER), 5000));
-		Thread player2 = new Thread (new Client (new SpeedShip (99, 999, Computer.START_DOWN, Entity.COMPUTER), 10000));
-		Thread player3 = new Thread (new Client (new MotherShip (99, 999, Computer.START_DOWN, Entity.COMPUTER), 1000));
+		/*Thread player1 = new Thread (new Client (new SuperSpeedShip (50, 100, Computer.START_LEFT, Entity.COMPUTER)));
+		Thread player2 = new Thread (new Client (new SpeedShip (99, 999, Computer.START_DOWN, Entity.COMPUTER)));
+		Thread player3 = new Thread (new Client (new MotherShip (99, 999, Computer.START_DOWN, Entity.COMPUTER)));
+		*/
 		
+		System.out.println("[SERVEUR] Starting...");
 		serveur.start();
+		System.out.println("[SERVEUR] Runing");
 		
-		player1.start();
+		/*player1.start();
 		player2.start();
 		
 		try
@@ -39,6 +41,6 @@ public class Test
 			System.out.println(Arrays.toString(e.getStackTrace()));
 		}
 		
-		player3.start();
+		player3.start();*/
 	}
 }

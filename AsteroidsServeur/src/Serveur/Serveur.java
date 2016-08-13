@@ -2,7 +2,7 @@
  * Gregory Pellegrin
  * pellegrin.gregory.work@gmail.com
  */
-package UDP;
+package Serveur;
 
 import Entity.Entity;
 import Entity.Ship;
@@ -45,8 +45,17 @@ public class Serveur implements Runnable
 		
 		this.entities.add(entity);
 		
-		if (((Ship) entity).missile.size() > 0)
-			this.entities.addAll(((Ship) entity).missile);
+		for (int i = 0; i < ((Ship) entity).missile.size(); i++)
+		{
+			find = false;
+			
+			for (int j = 0; ((j < this.entities.size()) && (! find)); j++)
+				if (((Ship) entity).missile.get(i).getId() == this.entities.get(j).getId())
+					find = true;
+			
+			if (find == false)
+				this.entities.add(((Ship) entity).missile.get(i));
+		}
 	}
 	
 	private void updateEntities ()
@@ -85,6 +94,8 @@ public class Serveur implements Runnable
 			
 			while (true)
 			{
+				//println("[SERVEUR] Total Entities : " + this.entities.size());
+				
 				byte [] bufferGetFromClient = new byte [Serveur.BYTE_SIZE];
 				DatagramPacket paquetGetFromClient = new DatagramPacket
 				(
@@ -101,10 +112,10 @@ public class Serveur implements Runnable
 				this.addEntity(entity);
 				this.updateEntities();
 				
+				println("[SERVEUR] Paquet recu du client " + entity.getId());
+				
 				objectStreamGetFromClient.close();
 				paquetGetFromClient.setLength(bufferGetFromClient.length);
-				
-				println("[SERVEUR] Paquet recu du client " + entity.getId());
 				
 				ByteArrayOutputStream objectByteSendToClient = new ByteArrayOutputStream (Serveur.BYTE_SIZE);
 				ObjectOutputStream objectStreamSendToClient = new ObjectOutputStream (new BufferedOutputStream (objectByteSendToClient));
