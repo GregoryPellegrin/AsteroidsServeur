@@ -15,6 +15,6 @@ public class StartServeur
 		
 		serveur.start();
 		
-		System.out.println("[SERVEUR] Runing...");
+		System.out.println("[SERVEUR] Running...");
 	}
 }
