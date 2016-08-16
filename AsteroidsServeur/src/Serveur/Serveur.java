@@ -5,6 +5,7 @@
 package Serveur;
 
 import Entity.Entity;
+import Entity.Missile;
 import Entity.Ship;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -28,7 +29,7 @@ public class Serveur implements Runnable
 	public static final int BYTE_SIZE = 5000;
 	public static final int PORT = 2345;
 	
-	private static int totalEntity = 0;
+	private static int totalEntity = 1;
 	
 	List <Entity> entities = new LinkedList <> ();
 	
@@ -36,46 +37,51 @@ public class Serveur implements Runnable
 	
 	private void addEntity (Entity entity)
 	{
-		boolean find = false;
-		
-		for (int i = 0; ((i < this.entities.size()) && (! find)); i++)
-			if (this.entities.get(i).getId() == entity.getId())
-			{
-				find = true;
-				
-				this.entities.remove(i);
-			}
-		
-		if (! find)
+		if (entity.getId() == 0)
 		{
-			System.out.println(Serveur.totalEntity);
 			entity.setId(Serveur.totalEntity);
 			
 			Serveur.totalEntity = Serveur.totalEntity + 1;
 		}
-		
-		this.entities.add(entity);
-		
-		for (int i = 0; i < ((Ship) entity).missile.size(); i++)
+		else
 		{
-			find = false;
+			boolean find = false;
 			
-			for (int j = 0; ((j < this.entities.size()) && (! find)); j++)
-				if (((Ship) entity).missile.get(i).getId() == this.entities.get(j).getId())
+			for (int i = 0; ((i < this.entities.size()) && (! find)); i++)
+				if (this.entities.get(i).getId() == entity.getId())
 				{
 					find = true;
 					
-					this.entities.remove(j);
+					this.entities.remove(i);
 				}
-			
-			if (! find)
+		}
+		
+		this.entities.add(entity);
+		
+		List <Missile> missiles = ((Ship) entity).missiles;
+		
+		for (int i = 0; i < missiles.size(); i++)
+		{
+			if (missiles.get(i).getId() == 0)
 			{
-				((Ship) entity).missile.get(i).setId(Serveur.totalEntity);
+				missiles.get(i).setId(Serveur.totalEntity);
 				
 				Serveur.totalEntity = Serveur.totalEntity + 1;
 			}
+			else
+			{
+				boolean find = false;
+				
+				for (int j = 0; ((j < this.entities.size()) && (! find)); j++)
+					if (missiles.get(i).getId() == this.entities.get(j).getId())
+					{
+						find = true;
+						
+						this.entities.remove(j);
+					}
+			}
 			
-			this.entities.add(((Ship) entity).missile.get(i));
+			this.entities.add(((Ship) entity).missiles.get(i));
 		}
 	}
 	
