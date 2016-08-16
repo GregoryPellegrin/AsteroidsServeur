@@ -28,6 +28,8 @@ public class Serveur implements Runnable
 	public static final int BYTE_SIZE = 5000;
 	public static final int PORT = 2345;
 	
+	private static int totalEntity = 0;
+	
 	List <Entity> entities = new LinkedList <> ();
 	
 	public Serveur () {}
@@ -40,8 +42,17 @@ public class Serveur implements Runnable
 			if (this.entities.get(i).getId() == entity.getId())
 			{
 				find = true;
+				
 				this.entities.remove(i);
 			}
+		
+		if (! find)
+		{
+			System.out.println(Serveur.totalEntity);
+			entity.setId(Serveur.totalEntity);
+			
+			Serveur.totalEntity = Serveur.totalEntity + 1;
+		}
 		
 		this.entities.add(entity);
 		
@@ -57,7 +68,13 @@ public class Serveur implements Runnable
 					this.entities.remove(j);
 				}
 			
-			//if (find == false)
+			if (! find)
+			{
+				((Ship) entity).missile.get(i).setId(Serveur.totalEntity);
+				
+				Serveur.totalEntity = Serveur.totalEntity + 1;
+			}
+			
 			this.entities.add(((Ship) entity).missile.get(i));
 		}
 	}
