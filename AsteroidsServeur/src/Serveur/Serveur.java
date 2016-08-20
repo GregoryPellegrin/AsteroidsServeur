@@ -5,8 +5,6 @@
 package Serveur;
 
 import Entity.Entity;
-import Entity.Missile;
-import Entity.Ship;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -19,97 +17,51 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 public class Serveur implements Runnable
 {
-	public static final String HOST_NAME = "127.0.0.1";
-	public static final int BYTE_SIZE = 5000;
-	public static final int PORT = 2345;
+	private static final String HOST_NAME = "127.0.0.1";
+	private static final int BYTE_SIZE = 5000;
+	private static final int PORT = 2345;
 	
-	private static int totalEntity = 1;
+	private final List <Entity> entities = new LinkedList <> ();
+	private final List <Entity> pendingEntities1 = new LinkedList <> ();
+	private final List <Entity> pendingEntities2 = new LinkedList <> ();
 	
-	List <Entity> entities = new LinkedList <> ();
+	private boolean choosePending = true;
 	
 	public Serveur () {}
 	
-	private void addEntity (Entity entity)
+	public List <Entity> getEntities ()
 	{
-		if (entity.getId() == 0)
+		if (choosePending)
 		{
-			entity.setId(Serveur.totalEntity);
+			choosePending = false;
 			
-			Serveur.totalEntity = Serveur.totalEntity + 1;
+			return this.pendingEntities1;
 		}
 		else
 		{
-			boolean find = false;
+			choosePending = true;
 			
-			for (int i = 0; ((i < this.entities.size()) && (! find)); i++)
-				if (this.entities.get(i).getId() == entity.getId())
-				{
-					find = true;
-					
-					this.entities.remove(i);
-				}
-		}
-		
-		this.entities.add(entity);
-		
-		List <Missile> missiles = ((Ship) entity).missiles;
-		
-		for (int i = 0; i < missiles.size(); i++)
-		{
-			if (missiles.get(i).getId() == 0)
-			{
-				missiles.get(i).setId(Serveur.totalEntity);
-				
-				Serveur.totalEntity = Serveur.totalEntity + 1;
-			}
-			else
-			{
-				boolean find = false;
-				
-				for (int j = 0; ((j < this.entities.size()) && (! find)); j++)
-					if (missiles.get(i).getId() == this.entities.get(j).getId())
-					{
-						find = true;
-						
-						this.entities.remove(j);
-					}
-			}
-			
-			this.entities.add(((Ship) entity).missiles.get(i));
+			return this.pendingEntities2;
 		}
 	}
 	
-	private void updateEntities ()
+	public void clearEntities ()
 	{
-		for (Entity entity : this.entities)
-			entity.update();
-		
-		for (int i = 0; i < this.entities.size(); i++)
-		{
-			Entity a = this.entities.get(i);
-
-			for (int j = i + 1; j < this.entities.size(); j++)
-			{
-				Entity b = this.entities.get(j);
-				
-				if ((i != j) && a.isCollision(b))
-				{
-					a.checkCollision(b);
-					b.checkCollision(a);
-				}
-			}
-		}
-		
-		Iterator <Entity> iter = this.entities.iterator();
-		while (iter.hasNext())
-			if (iter.next().needsRemoval())
-				iter.remove();
+		if (! choosePending)
+			this.pendingEntities1.clear();
+		else
+			this.pendingEntities2.clear();
+	}
+	
+	public void update (List <Entity> entities)
+	{
+		this.entities.clear();
+		this.entities.addAll(entities);
 	}
 	
 	@Override
@@ -121,8 +73,6 @@ public class Serveur implements Runnable
 			
 			while (true)
 			{
-				//println("[SERVEUR] Total Entities : " + this.entities.size());
-				
 				byte [] bufferGetFromClient = new byte [Serveur.BYTE_SIZE];
 				DatagramPacket paquetGetFromClient = new DatagramPacket
 				(
@@ -136,16 +86,18 @@ public class Serveur implements Runnable
 				ObjectInputStream objectStreamGetFromClient = new ObjectInputStream (new BufferedInputStream (objectByteGetFromClient));
 				
 				Entity entity = (Entity) objectStreamGetFromClient.readObject();
-				this.addEntity(entity);
-				this.updateEntities();
-				
-				println("[SERVEUR] Paquet recu du client " + entity.getId());
+				if (choosePending)
+					this.pendingEntities1.add(entity);
+				else
+					this.pendingEntities2.add(entity);
 				
 				objectStreamGetFromClient.close();
 				paquetGetFromClient.setLength(bufferGetFromClient.length);
 				
 				ByteArrayOutputStream objectByteSendToClient = new ByteArrayOutputStream (Serveur.BYTE_SIZE);
 				ObjectOutputStream objectStreamSendToClient = new ObjectOutputStream (new BufferedOutputStream (objectByteSendToClient));
+				
+				System.out.println("SERVEUR : SIZE " + this.entities.size());
 				
 				objectStreamSendToClient.writeObject(this.entities);
 				objectStreamSendToClient.flush();
