@@ -29,52 +29,59 @@ public class Universe
 		return this.entities;
 	}
 	
+	public void clearEntities ()
+	{
+		this.entities.clear();
+	}
+	
 	public void update (List <Entity> entities)
 	{
-		for (int i = 0; i < entities.size(); i++)
-			this.addEntity(entities.get(i));
+		//for (Entity entity : entities)
+		//	this.addEntity(entity);
 		
 		this.updateEntities();
 	}
 	
-	private void addEntity (Entity entity)
+	public void addEntity (List <Entity> entities)
 	{
-		boolean find = false;
-		
-		for (int i = 0; ((i < this.entities.size()) && (! find)); i++)
-			if (this.entities.get(i).getId().equals(entity.getId()))
-			{
-				find = true;
-				
-				this.entities.remove(i);
-			}
-		
-		this.entities.add(entity);
-		
-		List <Missile> missiles = ((Ship) entity).missiles;
-		
-		for (int i = 0; i < missiles.size(); i++)
+		for (Entity entity : entities)
 		{
-			if (missiles.get(i).getId().isEmpty())
-				((Ship) entity).missiles.get(i).setId(entity.getId() + i);
-			else
+			boolean find = false;
+
+			for (int i = 0; ((i < this.entities.size()) && (! find)); i++)
+				if (this.entities.get(i).getId().equals(entity.getId()))
+				{
+					find = true;
+
+					this.entities.remove(i);
+				}
+			this.entities.add(entity);
+
+			List <Missile> missiles = ((Ship) entity).missiles;
+
+			for (int i = 0; i < missiles.size(); i++)
 			{
-				find = false;
+				if (missiles.get(i).getId().isEmpty())
+					((Ship) entity).missiles.get(i).setId(entity.getId() + i);
+				else
+				{
+					find = false;
 
-				for (int j = 0; ((j < this.entities.size()) && (! find)); j++)
-					if (missiles.get(i).getId().equals(this.entities.get(j).getId()))
-					{
-						find = true;
+					for (int j = 0; ((j < this.entities.size()) && (! find)); j++)
+						if (missiles.get(i).getId().equals(this.entities.get(j).getId()))
+						{
+							find = true;
 
-						this.entities.remove(j);
-					}
+							this.entities.remove(j);
+						}
+				}
+
+				this.entities.add(((Ship) entity).missiles.get(i));
 			}
-			
-			this.entities.add(((Ship) entity).missiles.get(i));
 		}
 	}
 	
-	private void updateEntities ()
+	public void updateEntities ()
 	{
 		for (Entity entity : this.entities)
 			entity.update();
@@ -116,13 +123,15 @@ public class Universe
 			long start = System.nanoTime();
 			
 			logicTimer.update();
+			universe.addEntity(serveur.getEntities());
 			for (int i = 0; i < 5 && logicTimer.hasElapsedCycle(); i++)
-			{
-				universe.update(serveur.getEntities());
-				serveur.clearEntities();
-			}
+				universe.updateEntities();
+				//universe.update(serveur.getEntities());
+			
+			serveur.clearEntities();
 			
 			serveur.update(universe.getEntities());
+			universe.clearEntities();
 			
 			long delta = Universe.FRAME_TIME - (System.nanoTime() - start);			
 			if (delta > 0)

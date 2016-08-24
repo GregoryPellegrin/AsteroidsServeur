@@ -27,35 +27,18 @@ public class Serveur implements Runnable
 	private static final int PORT = 2345;
 	
 	private final List <Entity> entities = new LinkedList <> ();
-	private final List <Entity> pendingEntities1 = new LinkedList <> ();
-	private final List <Entity> pendingEntities2 = new LinkedList <> ();
-	
-	private boolean choosePending = true;
+	private final List <Entity> pendingEntities = new LinkedList <> ();
 	
 	public Serveur () {}
 	
 	public List <Entity> getEntities ()
 	{
-		if (choosePending)
-		{
-			choosePending = false;
-			
-			return this.pendingEntities1;
-		}
-		else
-		{
-			choosePending = true;
-			
-			return this.pendingEntities2;
-		}
+		return this.pendingEntities;
 	}
 	
 	public void clearEntities ()
 	{
-		if (! choosePending)
-			this.pendingEntities1.clear();
-		else
-			this.pendingEntities2.clear();
+		this.pendingEntities.clear();
 	}
 	
 	public void update (List <Entity> entities)
@@ -86,18 +69,21 @@ public class Serveur implements Runnable
 				ObjectInputStream objectStreamGetFromClient = new ObjectInputStream (new BufferedInputStream (objectByteGetFromClient));
 				
 				Entity entity = (Entity) objectStreamGetFromClient.readObject();
-				if (choosePending)
-					this.pendingEntities1.add(entity);
-				else
-					this.pendingEntities2.add(entity);
+				boolean find = false;
+				for (int i = 0; ((i < this.pendingEntities.size()) && (! find)); i++)
+					if (this.pendingEntities.get(i).getId().equals(entity.getId()))
+					{
+						find = true;
+
+						this.pendingEntities.remove(i);
+					}
+				this.pendingEntities.add(entity);
 				
 				objectStreamGetFromClient.close();
 				paquetGetFromClient.setLength(bufferGetFromClient.length);
 				
 				ByteArrayOutputStream objectByteSendToClient = new ByteArrayOutputStream (Serveur.BYTE_SIZE);
 				ObjectOutputStream objectStreamSendToClient = new ObjectOutputStream (new BufferedOutputStream (objectByteSendToClient));
-				
-				System.out.println("SERVEUR : SIZE " + this.entities.size());
 				
 				objectStreamSendToClient.writeObject(this.entities);
 				objectStreamSendToClient.flush();
