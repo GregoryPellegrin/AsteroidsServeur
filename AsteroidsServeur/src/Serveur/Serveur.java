@@ -69,6 +69,7 @@ public class Serveur implements Runnable
 				ObjectInputStream objectStreamGetFromClient = new ObjectInputStream (new BufferedInputStream (objectByteGetFromClient));
 				
 				Entity entity = (Entity) objectStreamGetFromClient.readObject();
+				
 				boolean find = false;
 				for (int i = 0; ((i < this.pendingEntities.size()) && (! find)); i++)
 					if (this.pendingEntities.get(i).getId().equals(entity.getId()))
