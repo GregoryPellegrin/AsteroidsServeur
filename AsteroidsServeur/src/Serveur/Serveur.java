@@ -16,9 +16,8 @@ import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 public class Serveur implements Runnable
 {
@@ -26,22 +25,34 @@ public class Serveur implements Runnable
 	private static final int BYTE_SIZE = 5000;
 	private static final int PORT = 2345;
 	
-	private final List <Entity> entities = new LinkedList <> ();
-	private final List <Entity> pendingEntities = new LinkedList <> ();
+	private final ArrayList <Entity> entities;
+	private final ArrayList <Entity> pendingEntities;
 	
-	public Serveur () {}
+	private boolean universeIsAddingPending;
 	
-	public List <Entity> getEntities ()
+	public Serveur ()
 	{
+		this.entities = new ArrayList <> ();
+		this.pendingEntities = new ArrayList <> ();
+		
+		this.universeIsAddingPending = false;
+	}
+	
+	public ArrayList <Entity> getEntities ()
+	{
+		this.universeIsAddingPending = true;
+		
 		return this.pendingEntities;
 	}
 	
-	public void clearEntities ()
+	public void clearPendingEntities ()
 	{
 		this.pendingEntities.clear();
+		
+		this.universeIsAddingPending = false;
 	}
 	
-	public void update (List <Entity> entities)
+	public void update (ArrayList <Entity> entities)
 	{
 		this.entities.clear();
 		this.entities.addAll(entities);
@@ -68,17 +79,20 @@ public class Serveur implements Runnable
 				ByteArrayInputStream objectByteGetFromClient = new ByteArrayInputStream (bufferGetFromClient);
 				ObjectInputStream objectStreamGetFromClient = new ObjectInputStream (new BufferedInputStream (objectByteGetFromClient));
 				
-				Entity entity = (Entity) objectStreamGetFromClient.readObject();
-				
-				boolean find = false;
-				for (int i = 0; ((i < this.pendingEntities.size()) && (! find)); i++)
-					if (this.pendingEntities.get(i).getId().equals(entity.getId()))
-					{
-						find = true;
+				if (! this.universeIsAddingPending)
+				{
+					Entity entity = (Entity) objectStreamGetFromClient.readObject();
+					
+					boolean find = false;
+					for (int i = 0; ((i < this.pendingEntities.size()) && (! find)); i++)
+						if (this.pendingEntities.get(i).getId().equals(entity.getId()))
+						{
+							find = true;
 
-						this.pendingEntities.remove(i);
-					}
-				this.pendingEntities.add(entity);
+							this.pendingEntities.remove(i);
+						}
+					this.pendingEntities.add(entity);
+				}
 				
 				objectStreamGetFromClient.close();
 				paquetGetFromClient.setLength(bufferGetFromClient.length);
@@ -125,10 +139,5 @@ public class Serveur implements Runnable
 			System.out.println("[SERVEUR] IOException : " + e.getMessage());
 			System.out.println(Arrays.toString(e.getStackTrace()));
 		}
-	}
-	
-	public static synchronized void println (String chaine)
-	{
-		System.out.println(chaine);
 	}
 }

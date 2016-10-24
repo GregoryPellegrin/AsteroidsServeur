@@ -10,21 +10,20 @@ import Entity.Missile;
 import Entity.Ship;
 import Serveur.Serveur;
 import Util.Clock;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 public class Universe
 {
 	public static final int FRAMES_PER_SECOND = 60;
 	public static final long FRAME_TIME = (long) (1000000000.0 / FRAMES_PER_SECOND);
 	
-	private final List <Entity> entities = new LinkedList <> ();
+	private final ArrayList <Entity> entities = new ArrayList <> ();
 	
 	public Universe () {}
 	
-	public List <Entity> getEntities ()
+	public ArrayList <Entity> getEntities ()
 	{
 		return this.entities;
 	}
@@ -34,7 +33,7 @@ public class Universe
 		this.entities.clear();
 	}
 	
-	public void addEntity (List <Entity> entities)
+	public void addEntity (ArrayList <Entity> entities)
 	{
 		for (Entity entity : entities)
 		{
@@ -49,7 +48,7 @@ public class Universe
 				}
 			this.entities.add(entity);
 			
-			List <Missile> missiles = ((Ship) entity).missiles;
+			ArrayList <Missile> missiles = ((Ship) entity).missiles;
 
 			for (int i = 0; i < missiles.size(); i++)
 			{
@@ -117,11 +116,10 @@ public class Universe
 			logicTimer.update();
 			
 			universe.addEntity(serveur.getEntities());
+			serveur.clearPendingEntities();
 			
 			for (int i = 0; i < 5 && logicTimer.hasElapsedCycle(); i++)
 				universe.updateEntities();
-			
-			serveur.clearEntities();
 			
 			serveur.update(universe.getEntities());
 			universe.clearEntities();
