@@ -121,6 +121,9 @@ public class Universe
 			for (int i = 0; i < 5 && logicTimer.hasElapsedCycle(); i++)
 				universe.updateEntities();
 			
+			if (universe.entities.size() >= 1)
+				System.out.println("[UNIVERSE] Entities : " + universe.entities.size());
+			
 			serveur.update(universe.getEntities());
 			universe.clearEntities();
 			
@@ -132,7 +135,7 @@ public class Universe
 				}
 				catch (Exception e)
 				{
-					System.out.println("[SERVEUR] Exception : " + e.getMessage());
+					System.out.println("[UNIVERSE] Exception : " + e.getMessage());
 					System.out.println(Arrays.toString(e.getStackTrace()));
 				}
 		}
