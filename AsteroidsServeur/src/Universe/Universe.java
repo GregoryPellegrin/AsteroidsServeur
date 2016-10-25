@@ -116,7 +116,7 @@ public class Universe
 			logicTimer.update();
 			
 			universe.addEntity(serveur.getEntities());
-			serveur.clearPendingEntities();
+			serveur.addEntitiesTerminated();
 			
 			for (int i = 0; i < 5 && logicTimer.hasElapsedCycle(); i++)
 				universe.updateEntities();

@@ -28,34 +28,42 @@ public class Serveur implements Runnable
 	private final ArrayList <Entity> entities;
 	private final ArrayList <Entity> pendingEntities;
 	
-	private boolean universeIsAddingPending;
+	private boolean entitiesIsLocked;
+	private boolean pendingEntitiesIsLocked;
 	
 	public Serveur ()
 	{
 		this.entities = new ArrayList <> ();
 		this.pendingEntities = new ArrayList <> ();
 		
-		this.universeIsAddingPending = false;
+		this.entitiesIsLocked = false;
+		this.pendingEntitiesIsLocked = false;
 	}
 	
 	public ArrayList <Entity> getEntities ()
 	{
-		this.universeIsAddingPending = true;
+		this.pendingEntitiesIsLocked = true;
 		
 		return this.pendingEntities;
 	}
 	
-	public void clearPendingEntities ()
+	public void addEntitiesTerminated ()
 	{
+		this.pendingEntitiesIsLocked = true;
+		
 		this.pendingEntities.clear();
 		
-		this.universeIsAddingPending = false;
+		this.pendingEntitiesIsLocked = false;
 	}
 	
 	public void update (ArrayList <Entity> entities)
 	{
+		this.entitiesIsLocked = true;
+		
 		this.entities.clear();
 		this.entities.addAll(entities);
+		
+		this.entitiesIsLocked = false;
 	}
 	
 	@Override
@@ -79,7 +87,7 @@ public class Serveur implements Runnable
 				ByteArrayInputStream objectByteGetFromClient = new ByteArrayInputStream (bufferGetFromClient);
 				ObjectInputStream objectStreamGetFromClient = new ObjectInputStream (new BufferedInputStream (objectByteGetFromClient));
 				
-				if (! this.universeIsAddingPending)
+				if (! this.pendingEntitiesIsLocked)
 				{
 					Entity entity = (Entity) objectStreamGetFromClient.readObject();
 					
@@ -100,23 +108,27 @@ public class Serveur implements Runnable
 				ByteArrayOutputStream objectByteSendToClient = new ByteArrayOutputStream (Serveur.BYTE_SIZE);
 				ObjectOutputStream objectStreamSendToClient = new ObjectOutputStream (new BufferedOutputStream (objectByteSendToClient));
 				
-				objectStreamSendToClient.writeObject(this.entities);
-				objectStreamSendToClient.flush();
-				
-				byte [] bufferSendToClient = objectByteSendToClient.toByteArray();
-				DatagramPacket paquetSendToClient = new DatagramPacket
-				(
-					bufferSendToClient,
-					bufferSendToClient.length,
-					paquetGetFromClient.getAddress(),
-					paquetGetFromClient.getPort()
-				);
-				
-				paquetSendToClient.setData(bufferSendToClient);
-				serveur.send(paquetSendToClient);
+				if (! this.entitiesIsLocked)
+				{
+					objectStreamSendToClient.writeObject(this.entities);
+					objectStreamSendToClient.flush();
+
+					byte [] bufferSendToClient = objectByteSendToClient.toByteArray();
+					DatagramPacket paquetSendToClient = new DatagramPacket
+					(
+						bufferSendToClient,
+						bufferSendToClient.length,
+						paquetGetFromClient.getAddress(),
+						paquetGetFromClient.getPort()
+					);
+
+					paquetSendToClient.setData(bufferSendToClient);
+					serveur.send(paquetSendToClient);
+					
+					paquetSendToClient.setLength(bufferSendToClient.length);
+				}
 				
 				objectStreamSendToClient.close();
-				paquetSendToClient.setLength(bufferSendToClient.length);
 			}
 		}
 		catch (SocketException e)
