@@ -42,28 +42,39 @@ public class Serveur implements Runnable
 	
 	public ArrayList <Entity> getEntities ()
 	{
-		this.pendingEntitiesIsLocked = true;
+		if (! this.pendingEntitiesIsLocked)
+		{
+			this.pendingEntitiesIsLocked = true;
 		
-		return this.pendingEntities;
+			return this.pendingEntities;
+		}
+		else
+			return new ArrayList <> ();
 	}
 	
 	public void addEntitiesTerminated ()
 	{
-		this.pendingEntitiesIsLocked = true;
-		
-		this.pendingEntities.clear();
-		
-		this.pendingEntitiesIsLocked = false;
+		if (! this.pendingEntitiesIsLocked)
+		{
+			this.pendingEntitiesIsLocked = true;
+
+			this.pendingEntities.clear();
+
+			this.pendingEntitiesIsLocked = false;
+		}
 	}
 	
 	public void update (ArrayList <Entity> entities)
 	{
-		this.entitiesIsLocked = true;
-		
-		this.entities.clear();
-		this.entities.addAll(entities);
-		
-		this.entitiesIsLocked = false;
+		if (! this.entitiesIsLocked)
+		{
+			this.entitiesIsLocked = true;
+
+			this.entities.clear();
+			this.entities.addAll(entities);
+
+			this.entitiesIsLocked = false;
+		}
 	}
 	
 	@Override
@@ -92,6 +103,7 @@ public class Serveur implements Runnable
 					Entity entity = (Entity) objectStreamGetFromClient.readObject();
 					
 					boolean find = false;
+					this.pendingEntitiesIsLocked = true;
 					for (int i = 0; ((i < this.pendingEntities.size()) && (! find)); i++)
 						if (this.pendingEntities.get(i).getId().equals(entity.getId()))
 						{
@@ -100,6 +112,7 @@ public class Serveur implements Runnable
 							this.pendingEntities.remove(i);
 						}
 					this.pendingEntities.add(entity);
+					this.pendingEntitiesIsLocked = false;
 				}
 				
 				objectStreamGetFromClient.close();
@@ -110,7 +123,10 @@ public class Serveur implements Runnable
 				
 				if (! this.entitiesIsLocked)
 				{
+					this.entitiesIsLocked = true;
 					objectStreamSendToClient.writeObject(this.entities);
+					this.entitiesIsLocked = false;
+					
 					objectStreamSendToClient.flush();
 
 					byte [] bufferSendToClient = objectByteSendToClient.toByteArray();
