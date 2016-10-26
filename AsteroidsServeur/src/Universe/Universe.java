@@ -115,17 +115,16 @@ public class Universe
 			
 			logicTimer.update();
 			
+			universe.clearEntities();
 			universe.addEntity(serveur.getEntities());
 			serveur.addEntitiesTerminated();
+			if (universe.entities.size() >= 1)
+				System.out.println("[UNIVERSE] Entities : " + universe.entities.size());
 			
 			for (int i = 0; i < 5 && logicTimer.hasElapsedCycle(); i++)
 				universe.updateEntities();
 			
-			if (universe.entities.size() >= 1)
-				System.out.println("[UNIVERSE] Entities : " + universe.entities.size());
-			
 			serveur.update(universe.getEntities());
-			universe.clearEntities();
 			
 			long delta = Universe.FRAME_TIME - (System.nanoTime() - start);			
 			if (delta > 0)
