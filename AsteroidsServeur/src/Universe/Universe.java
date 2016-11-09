@@ -118,8 +118,6 @@ public class Universe
 			universe.clearEntities();
 			universe.addEntity(serveur.getEntities());
 			serveur.addEntitiesTerminated();
-			if (universe.entities.size() >= 1)
-				System.out.println("[UNIVERSE] Entities : " + universe.entities.size());
 			
 			for (int i = 0; i < 5 && logicTimer.hasElapsedCycle(); i++)
 				universe.updateEntities();
